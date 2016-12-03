@@ -295,6 +295,7 @@ func dtmfProc(notifyMessage []byte) {
 
 		callList.UpdateCallResult(callId, CALL_DTMF_TIMEOUT)
 		ipccClient.PlayVoice(callId, invalidNo)
+		return
 	}
 
 	callList.SetCallDtmf(callId, dtmf)
