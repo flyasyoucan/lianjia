@@ -271,7 +271,7 @@ func GetDtmfByTtsInterface(callId string, arg string, MaxRevCnt string, Key2End 
 	r.Key2Stop = "*"
 	r.PlayTime = "1"
 	r.SpaceTime = "15"
-	r.TotalTime = "60"
+	r.TotalTime = "45"
 
 	r.AppId = conf.GetAppid()
 	r.CallId = callId

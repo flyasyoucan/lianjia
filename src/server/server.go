@@ -20,18 +20,21 @@ import (
 )
 
 const (
-	CALL_SUCCESS     = "ANSWERED"
-	CALL_REFUSE      = "REJECT"
-	CALL_BUSY        = "BUSY"
-	CALL_TIMEOUT     = "NO_ANSWER"
-	CALL_NOT_EXIST   = "TP_NO_BINDING"
-	CALL_SERVER_BUSY = "TP_TIMEOUT"
-	CALL_HUNGUP      = "HANGUP"
-	CALL_WRONG       = "TP_ERROR"
-	CALL_OTHER       = "OTHER"
-	CALL_NUM_INVALID = "INVALID_NUMBER"
-	CALL_POWER_OFF   = "POWER_OFF"
-	CALL_SUSPEND     = "SUSPEND"
+	CALL_SUCCESS      = "ANSWERED"
+	CALL_REFUSE       = "REJECT"
+	CALL_BUSY         = "BUSY"
+	CALL_TIMEOUT      = "NO_ANSWER"
+	CALL_NOT_EXIST    = "TP_NO_BINDING"
+	CALL_SERVER_BUSY  = "TP_TIMEOUT"
+	CALL_HUNGUP       = "HANGUP"
+	CALL_WRONG        = "TP_ERROR"
+	CALL_OTHER        = "OTHER"
+	CALL_NUM_INVALID  = "INVALID_NUMBER"
+	CALL_POWER_OFF    = "POWER_OFF"
+	CALL_SUSPEND      = "SUSPEND"
+	CALL_NOEXT_HUNGUP = "NOEXT_USER_HANGUP" //未按分机号提前挂机
+	CALL_DTMF_TIMEOUT = "NOEXT_SYS_HANGUP"  //未按分机号 超时挂机
+	CALL_ERR_LINE     = "NETWORK_ERROR"     //线路故障
 )
 
 const (
@@ -270,6 +273,8 @@ func inCallProcByMobile(inCall ipcc.InCall) {
 //获取按键信息
 func dtmfProc(notifyMessage []byte) {
 
+	var displayNum string
+
 	callId, dtmf, _, err := ipcc.ParseDtmf(notifyMessage)
 	if nil != err {
 		log.Error("parse incomcall failed:%s,%s", string(notifyMessage), err)
@@ -282,6 +287,17 @@ func dtmfProc(notifyMessage []byte) {
 		return
 	}
 
+	/* 超时未按分机号处理流程 */
+	if len(dtmf) == 0 {
+
+		callList.SetCallDtmf(callId, CALL_DTMF_TIMEOUT)
+		callList.UpdateCallee(callId, "", "", displayNum)
+
+		callList.UpdateCallResult(callId, CALL_DTMF_TIMEOUT)
+		ipccClient.PlayVoice(callId, invalidNo)
+	}
+
+	callList.SetCallDtmf(callId, dtmf)
 	callee := callList.GetCalleeHideNumber(callId) + dtmf
 
 	var info ljClient.NumberResp
@@ -289,7 +305,15 @@ func dtmfProc(notifyMessage []byte) {
 	//查询坐席真实号码与播放语音路径
 	err = ljClient.GetServiceNum(callId, call.GetCaller(), callee, &info)
 
-	callList.UpdateCallee(callId, info.GetCallee(), callee, info.GetCallerShowNum())
+	/* 更新主叫号码 */
+	if "0" == info.GetCallerShowNum() {
+		displayNum = config.GetNumber()
+
+	} else {
+		displayNum = info.GetCallerShowNum()
+	}
+
+	callList.UpdateCallee(callId, info.GetCallee(), callee, displayNum)
 	if nil != err {
 		//获取超时 或者有错误 直接挂机，并播放您拨打的号码是空号
 		ipccClient.PlayVoice(callId, invalidNo)
@@ -321,18 +345,6 @@ func dtmfProc(notifyMessage []byte) {
 		callList.UpdateCallResult(callId, CALL_WRONG)
 
 		return
-	}
-
-	var displayNum string
-
-	if false {
-		//if strings.HasPrefix(call.GetCaller(), "0") && len(config.GetNumber()) > 0 {
-
-		displayNum = config.GetNumber()
-		callList.UpdateDisplayNum(callId, displayNum)
-
-	} else {
-		displayNum = info.GetCallerShowNum()
 	}
 
 	var callerVoic string
@@ -432,6 +444,12 @@ func callStatProc(notifyMessage []byte) {
 		ipccClient.PlayVoice(stat.CallId, needCharge)
 		callList.UpdateCallResult(stat.CallId, CALL_SUSPEND)
 
+	//VBOSS 故障
+	case 11 == stat.Status || 12 == stat.Status:
+		log.Debug("%s get call stat:%s", stat.CallId, CALL_ERR_LINE)
+		ipccClient.PlayVoice(stat.CallId, busying)
+		callList.UpdateCallResult(stat.CallId, CALL_ERR_LINE)
+
 	default:
 		log.Debug("%s get call stat:%s", stat.CallId, CALL_OTHER)
 		callList.UpdateCallResult(stat.CallId, CALL_OTHER)
@@ -453,8 +471,13 @@ func endCallProc(notifyMessage *[]byte) {
 	if len(fileId) > 0 {
 		record = ipcc.GetRecordUrl(fileId, date)
 	} else {
-		/* 如果没有录音文件 一般来讲是提前挂机 */
-		callList.UpdateCallResult(callId, CALL_HUNGUP)
+		/* 没有录音文件 用户主动挂机 */
+		if callList.GetCallDtmf(callId) == CALL_DTMF_TIMEOUT {
+			callList.UpdateCallResult(callId, CALL_NOEXT_HUNGUP)
+		} else {
+			callList.UpdateCallResult(callId, CALL_HUNGUP)
+		}
+
 	}
 
 	//更新结束时间

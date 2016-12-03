@@ -33,6 +33,7 @@ type CallInfo struct {
 	result        string /* 通话结果 */
 	nbr           string /* 绑定的接入号 */
 	bindNumber    string /* 对应的400 */
+	dtmf          string
 }
 
 type callJson struct {
@@ -116,6 +117,15 @@ func (p *CallInfo) GetEndTime() string {
 	return p.endTime
 }
 
+func (p *CallInfo) GetDtmf() string {
+	return p.dtmf
+}
+
+func (p *CallInfo) SetDtmf(dtmf string) {
+	p.dtmf = dtmf
+	return
+}
+
 var CallList map[string]CallInfo
 
 func GetCalleeHideNumber(callid string) string {
@@ -123,6 +133,23 @@ func GetCalleeHideNumber(callid string) string {
 		return val.GetCalleeHideNum()
 	} else {
 		return ""
+	}
+}
+
+func GetCallDtmf(callid string) string {
+	if val, ok := CallList[callid]; ok {
+		return val.GetDtmf()
+	} else {
+		return ""
+	}
+}
+
+func SetCallDtmf(callid string, dtmf string) error {
+	if val, ok := CallList[callid]; ok {
+		val.SetDtmf(dtmf)
+		return nil
+	} else {
+		return errors.New("callid not exist")
 	}
 }
 
