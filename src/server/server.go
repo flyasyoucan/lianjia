@@ -290,8 +290,7 @@ func dtmfProc(notifyMessage []byte) {
 	/* 超时未按分机号处理流程 */
 	if len(dtmf) == 0 {
 
-		callList.SetCallDtmf(callId, CALL_DTMF_TIMEOUT)
-		callList.UpdateCallee(callId, "", "", displayNum)
+		callList.UpdateCallee(callId, "", "", "")
 
 		callList.UpdateCallResult(callId, CALL_DTMF_TIMEOUT)
 		ipccClient.PlayVoice(callId, invalidNo)
@@ -473,7 +472,7 @@ func endCallProc(notifyMessage *[]byte) {
 		record = ipcc.GetRecordUrl(fileId, date)
 	} else {
 		/* 没有录音文件 用户主动挂机 */
-		if callList.GetCallDtmf(callId) == CALL_DTMF_TIMEOUT {
+		if len(callList.GetCallDtmf(callId)) < 4 {
 			callList.UpdateCallResult(callId, CALL_NOEXT_HUNGUP)
 		} else {
 			callList.UpdateCallResult(callId, CALL_HUNGUP)
