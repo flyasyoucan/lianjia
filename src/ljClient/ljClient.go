@@ -14,7 +14,6 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"reflect"
 	"sort"
 	"time"
 )
@@ -297,12 +296,12 @@ func (p *NumberResp) GetCallerVoice() string {
 
 func (p *NumberResp) GetCallerShowNum() string {
 
-	if "int" == reflect.TypeOf(p.Data.CallerDisplay).Name() {
-		return "0"
-	} else {
+	switch p.Data.CallerDisplay.(type) {
+	case string:
 		return p.Data.CallerDisplay.(string)
+	default:
+		return fmt.Sprintf("%d", p.Data.CallerDisplay)
 	}
-
 }
 
 func (p *NumberResp) GetCallee() string {
