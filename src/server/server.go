@@ -473,8 +473,10 @@ func endCallProc(notifyMessage *[]byte) {
 	} else {
 		/* 没有录音文件 用户主动挂机 */
 		if len(callList.GetCallDtmf(callId)) < 4 {
+			log.Debug("%s user hunguped with no keys", callId)
 			callList.UpdateCallResult(callId, CALL_NOEXT_HUNGUP)
 		} else {
+			log.Debug("%s user hunguped before answered", callId)
 			callList.UpdateCallResult(callId, CALL_HUNGUP)
 		}
 
