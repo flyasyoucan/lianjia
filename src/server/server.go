@@ -65,6 +65,8 @@ const (
 
 	//回拨开始
 	eventCallBegin = "callbackbeginrpt"
+
+	extension_len = 4
 )
 
 const (
@@ -288,7 +290,7 @@ func dtmfProc(notifyMessage []byte) {
 	}
 
 	/* 超时未按分机号处理流程 */
-	if len(dtmf) == 0 {
+	if len(dtmf) < extension_len {
 
 		callList.UpdateCallee(callId, "", "", "")
 
@@ -472,7 +474,7 @@ func endCallProc(notifyMessage *[]byte) {
 		record = ipcc.GetRecordUrl(fileId, date)
 	} else {
 		/* 没有录音文件 用户主动挂机 */
-		if len(callList.GetCallDtmf(callId)) < 4 {
+		if len(callList.GetCallDtmf(callId)) < extension_len {
 			log.Debug("%s user hunguped with no keys", callId)
 			callList.UpdateCallResult(callId, CALL_NOEXT_HUNGUP)
 		} else {
