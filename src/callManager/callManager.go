@@ -147,6 +147,7 @@ func GetCallDtmf(callid string) string {
 func SetCallDtmf(callid string, dtmf string) error {
 	if val, ok := CallList[callid]; ok {
 		val.SetDtmf(dtmf)
+		CallList[callid] = val
 		return nil
 	} else {
 		return errors.New("callid not exist")
