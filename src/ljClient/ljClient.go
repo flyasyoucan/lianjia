@@ -14,6 +14,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"reflect"
 	"sort"
 	"time"
 )
@@ -275,9 +276,9 @@ type dataPort struct {
 }
 
 type numInfo struct {
-	Detail        dataPort `json:"port_info"`
-	Callee        string   `json:"callee_num"`
-	CallerDisplay string   `json:"caller_show_num"`
+	Detail        dataPort    `json:"port_info"`
+	Callee        string      `json:"callee_num"`
+	CallerDisplay interface{} `json:"caller_show_num"`
 }
 
 type NumberResp struct {
@@ -295,7 +296,13 @@ func (p *NumberResp) GetCallerVoice() string {
 }
 
 func (p *NumberResp) GetCallerShowNum() string {
-	return p.Data.CallerDisplay
+
+	if "int" == reflect.TypeOf(p.Data.CallerDisplay).Name() {
+		return "0"
+	} else {
+		return p.Data.CallerDisplay.(string)
+	}
+
 }
 
 func (p *NumberResp) GetCallee() string {
