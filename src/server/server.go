@@ -300,6 +300,9 @@ func dtmfProc(notifyMessage []byte) {
 	}
 
 	callList.SetCallDtmf(callId, dtmf)
+
+	log.Debug("%s set dtmf:%s", callId, callList.GetCallDtmf(), dtmf)
+
 	callee := callList.GetCalleeHideNumber(callId) + dtmf
 
 	var info ljClient.NumberResp
