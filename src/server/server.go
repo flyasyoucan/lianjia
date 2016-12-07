@@ -289,10 +289,11 @@ func dtmfProc(notifyMessage []byte) {
 		return
 	}
 
+	callee := callList.GetCalleeHideNumber(callId) + dtmf
 	/* 超时未按分机号处理流程 */
 	if len(dtmf) < extension_len {
 
-		callList.UpdateCallee(callId, "", "", "")
+		callList.UpdateCallee(callId, "", callee, "")
 
 		callList.UpdateCallResult(callId, CALL_DTMF_TIMEOUT)
 		ipccClient.PlayVoice(callId, invalidNo)
@@ -300,10 +301,6 @@ func dtmfProc(notifyMessage []byte) {
 	}
 
 	callList.SetCallDtmf(callId, dtmf)
-
-	log.Debug("%s set dtmf:%s", callId, callList.GetCallDtmf(callId), dtmf)
-
-	callee := callList.GetCalleeHideNumber(callId) + dtmf
 
 	var info ljClient.NumberResp
 
