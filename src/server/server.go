@@ -362,7 +362,7 @@ func dtmfProc(notifyMessage []byte) {
 	if info.GetCalleeVoice() != "" {
 		calleeVoice = mysql.GetIvrVoiceName(info.GetCalleeVoice())
 	} else {
-		calleeVoice = ""
+		calleeVoice = "nosound.wav"
 	}
 
 	log.Debug("%s get caller:%s callee voice:%s,display:%s", callId, callerVoic, calleeVoice, displayNum)
