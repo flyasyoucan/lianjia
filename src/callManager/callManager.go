@@ -191,7 +191,7 @@ func InNewCall(callId string, caller string, callee string, nbr string, bindNumb
 
 func UpdateCallee(callid string, callee string, calleeHide string, callerHide string) {
 
-	log.Debug("update callee show number:%s,caller show number%s", calleeHide, callerHide)
+	log.Debug("update callee show number:%s,caller show number:%s", calleeHide, callerHide)
 
 	if val, ok := CallList[callid]; ok {
 		val.callee = callee

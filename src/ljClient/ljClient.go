@@ -206,7 +206,7 @@ func GetServiceNum(callid string, caller string, callee string, result *NumberRe
 	inputParam := makeGetUserParam(callid, callee, caller)
 	resp, err := httpGetServiceNum(inputParam)
 
-	//fmt.Println("get number:", string(*resp))
+	fmt.Println("get number:%s", string(*resp))
 	if nil != err {
 		log.Error("Get service number failed", err)
 		return err
