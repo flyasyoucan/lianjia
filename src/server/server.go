@@ -308,7 +308,7 @@ func dtmfProc(notifyMessage []byte) {
 	err = ljClient.GetServiceNum(callId, call.GetCaller(), callee, &info)
 
 	/* 更新主叫号码 */
-	if "0" == info.GetCallerShowNum() {
+	if "0" == info.GetCallerShowNum() && err != nil {
 		displayNum = config.GetNumber()
 
 	} else {
